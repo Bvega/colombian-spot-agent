@@ -66,7 +66,10 @@
       <h1>🇨🇴 The Colombian Spot</h1>
       <small style="color: var(--muted);">South Side • Direct AI Ordering</small>
     </div>
-    <div class="status-badge">● Zero Commission</div>
+    <div style="display: flex; align-items: center; gap: 0.6rem;">
+      <button id="resetChatBtn" title="Reset Chat" style="background: none; border: none; color: var(--muted); font-size: 1.25rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; outline: none;" onmouseover="this.style.color='var(--yellow)'" onmouseout="this.style.color='var(--muted)'">↻</button>
+      <div class="status-badge">● Zero Commission</div>
+    </div>
   </div>
   <div class="messages" id="messages">
     <div class="msg msg-bot">
@@ -159,6 +162,14 @@
     e.preventDefault();
     if (userInput.value.trim()) sendPrompt(userInput.value.trim());
   });
+
+  function resetChat() {
+    msgBox.innerHTML = '';
+    addMsg('¡Hola! Welcome to The Colombian Spot. Ask me about our 100% gluten-free arepas, empanadas, opening hours, or order direct for delivery!', 'bot');
+    userInput.value = '';
+  }
+
+  document.getElementById('resetChatBtn').addEventListener('click', resetChat);
 
   // PWA Service Worker Registration
   if ('serviceWorker' in navigator) {
