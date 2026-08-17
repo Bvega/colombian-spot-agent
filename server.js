@@ -17,6 +17,29 @@ const CATALOG = [
   { id: "patacones_hogao", name: "Patacones con Hogao", price: 8.50, category: "Appetizers", dietary: ["Gluten-Free", "Vegan"], desc: "Crispy double-fried green plantain rounds served with warm tomato-onion hogao sauce." }
 ];
 
+const LOCATIONS = {
+  south_side: {
+    name: "South Side",
+    address: "2019 E Carson St, Pittsburgh, PA 15203",
+    hours: "Tue-Thu 11:30AM-8:30PM | Fri-Sat 11:30AM-9:30PM | Sun 11:30AM-7:30PM (Mon Closed)",
+    type: "Full sit-down dining & reservations recommended, lunch/dinner"
+  },
+  oakland: {
+    name: "Oakland",
+    address: "3533 Forbes Ave, Pittsburgh, PA 15213",
+    hours: "Mon-Sun 7:00AM-10:00PM",
+    type: "Fast casual counter service"
+  }
+};
+
+const CATERING_MENU = [
+  { id: "arepa_bar", name: "Build-Your-Own Arepa Bar", price: 15.99, desc: "Includes 2 meats + 3 sides, naturally gluten-free corn arepas. Min 10 people." },
+  { id: "empanadas_tray", name: "Empanada Party Tray (10 pcs)", price: 28.00, desc: "Trays of 10 golden crispy beef or chicken empanadas." },
+  { id: "picada_platter", name: "Picada Platter (Serves 5)", price: 45.00, desc: "Traditional platter of steak, chicharron, chorizo, arepa, tostones, and yuca." },
+  { id: "maduros_platter", name: "Sweet Plantains Platter (Serves 5)", price: 18.00, desc: "Tray of sweet fried plantains." },
+  { id: "tostones_platter", name: "Tostones Platter (Serves 5)", price: 18.00, desc: "Tray of crispy double-fried green plantains with hogao." }
+];
+
 app.get('/llms.txt', (req, res) => {
   res.type('text/plain').send(`# The Colombian Spot\n> Authentic, homemade Colombian cuisine specializing in 100% naturally gluten-free corn arepas, crispy empanadas, and traditional Bandeja Paisa.\n\n## Location & Hours\n- Address: 2019 E Carson St, Pittsburgh, PA 15203 (South Side)\n- Hours: Tue-Thu 11:30AM-8:30PM | Fri-Sat 11:30AM-9:30PM | Sun 11:30AM-7:30PM (Mon Closed)\n\n## Direct Actions\n- GET /api/menu : Query live catalog\n- POST /api/delivery/quote : Live delivery quote\n- POST /api/orders/delivery : Direct kitchen ticket (0% marketplace commission)`);
 });
@@ -69,6 +92,20 @@ app.post('/api/orders/delivery', (req, res) => {
   });
 });
 
+app.post('/api/reservations', (req, res) => {
+  const { location, date, time, partySize, name, phone } = req.body;
+  if (!location || !date || !time || !partySize || !name || !phone) {
+    return res.status(400).json({ error: "Missing reservation details" });
+  }
+  const reservationId = `RES-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+  res.json({
+    success: true,
+    reservationId,
+    status: "Confirmed / Table Requested",
+    details: { location, date, time, partySize, name, phone }
+  });
+});
+
 app.post('/api/chat', (req, res) => {
   const { message } = req.body;
   const text = (message || '').toLowerCase();
@@ -77,11 +114,31 @@ app.post('/api/chat', (req, res) => {
     return res.json({ response: "¡Hola! Great news: Almost our entire menu at The Colombian Spot is naturally 100% Gluten-Free! Our arepas, empanadas, and patacones are made from pure corn flour dough." });
   }
 
-  if (text.includes('hour') || text.includes('open') || text.includes('time') || text.includes('location') || text.includes('address')) {
-    return res.json({ response: "We are located at 2019 E Carson St in Pittsburgh's South Side. We are open Tuesday to Saturday (11:30 AM - 8:30/9:30 PM) and Sunday until 7:30 PM (Closed Mondays)." });
+  if (text.includes('hour') || text.includes('open') || text.includes('time') || text.includes('location') || text.includes('address') || text.includes('where') || text.includes('south side') || text.includes('oakland')) {
+    return res.json({
+      response: `We have two convenient locations in Pittsburgh:\n\n1. 🇨🇴 **South Side** (2019 E Carson St):\n   - *Type*: ${LOCATIONS.south_side.type}\n   - *Hours*: ${LOCATIONS.south_side.hours}\n\n2. 🎓 **Oakland** (3533 Forbes Ave):\n   - *Type*: ${LOCATIONS.oakland.type}\n   - *Hours*: ${LOCATIONS.oakland.hours}`
+    });
   }
 
-  if (text.includes('order') || text.includes('arepa') || text.includes('empanada') || text.includes('bandeja') || text.includes('hungry')) {
+  if (text.includes('reserve') || text.includes('table') || text.includes('book') || text.includes('reservation') || text.includes('seat')) {
+    return res.json({
+      response: "I can help you book a table at either of our Pittsburgh locations! Here is our interactive reservation card:",
+      actionSuggested: {
+        action: "PROMPT_RESERVATION"
+      }
+    });
+  }
+
+  if (text.includes('cater') || text.includes('party') || text.includes('group') || text.includes('arepa bar')) {
+    return res.json({
+      response: "We offer professional catering for any size group! Our Build-Your-Own Arepa Bar is $15.99 per person (minimum 10 guests). Use this catering card to calculate a quote or submit a request:",
+      actionSuggested: {
+        action: "PROMPT_CATERING"
+      }
+    });
+  }
+
+  if (text.includes('order') || text.includes('arepa') || text.includes('empanada') || text.includes('bandeja') || text.includes('hungry') || text.includes('food')) {
     return res.json({
       response: "I can prepare a direct delivery order for you right now! Here are our most popular gluten-free favorites:",
       actionSuggested: {
@@ -95,7 +152,7 @@ app.post('/api/chat', (req, res) => {
     });
   }
 
-  return res.json({ response: "¡Bienvenidos a The Colombian Spot! I can answer dietary questions, give hours/location info, or take a direct delivery order. What would you like to do?" });
+  return res.json({ response: "¡Bienvenidos a The Colombian Spot! I can answer dietary questions, give hours/location info for both locations, take a direct delivery order, book a table reservation, or coordinate catering. What would you like to do?" });
 });
 
 app.get('/api/menu', (req, res) => {
