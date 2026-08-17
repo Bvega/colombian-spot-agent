@@ -17,7 +17,7 @@
     :root { --bg: #111827; --card: #1f2937; --yellow: #facc15; --blue: #2563eb; --text: #f9fafb; --muted: #9ca3af; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1rem; }
-    .chat-wrapper { width: 100%; max-width: 480px; height: 680px; background: var(--card); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #374151; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); }
+    .chat-wrapper { width: 100%; max-width: 480px; height: 680px; background: var(--card); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #374151; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); position: relative; }
     .header { background: #111827; padding: 1.2rem; border-bottom: 2px solid var(--yellow); display: flex; align-items: center; justify-content: space-between; }
     .header h1 { font-size: 1.15rem; color: var(--yellow); }
     .status-badge { font-size: 0.75rem; background: #065f46; color: #34d399; padding: 0.25rem 0.6rem; border-radius: 999px; font-weight: 600; }
@@ -30,14 +30,84 @@
     .btn-action { background: var(--yellow); color: #000; border: none; font-weight: 700; padding: 0.6rem; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 0.5rem; font-size: 0.85rem; }
     .btn-action:hover { background: #eab308; }
     
-    /* 2x2 Clean Grid for Action Chips */
-    .chips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; padding: 0.8rem; background: #111827; border-top: 1px solid #374151; }
-    .chip-item { background: #374151; color: var(--muted); font-size: 0.8rem; padding: 0.55rem; border-radius: 8px; cursor: pointer; text-align: center; border: 1px solid #4b5563; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+    /* Sleek 1-Row Horizontal Scroll for Action Chips */
+    .chips-scroll {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.8rem;
+      background: #111827;
+      border-top: 1px solid #374151;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      -ms-overflow-style: none; /* IE/Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    .chips-scroll::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+    }
+    .chip-item {
+      flex: 0 0 auto; /* Prevent chips from shrinking */
+      background: #374151;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 0.45rem 0.95rem;
+      border-radius: 999px; /* Pill shape */
+      cursor: pointer;
+      border: 1px solid #4b5563;
+      transition: all 0.2s;
+      font-weight: 600;
+      white-space: nowrap;
+    }
     .chip-item:hover { color: var(--text); border-color: var(--yellow); background: #4b5563; }
     
     .input-bar { display: flex; padding: 0.8rem; background: #111827; border-top: 1px solid #374151; gap: 0.5rem; }
     .input-bar input { flex: 1; background: var(--card); border: 1px solid #4b5563; border-radius: 8px; padding: 0.75rem; color: #fff; outline: none; }
     .input-bar button { background: var(--yellow); border: none; font-weight: 700; padding: 0 1.2rem; border-radius: 8px; cursor: pointer; color: #000; }
+
+    /* Modal / Bottom Sheet Styling */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: flex-end;
+      z-index: 1000;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .bottom-sheet {
+      width: 100%;
+      background: var(--card);
+      border-top: 2.5px solid var(--yellow);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      padding: 1.2rem;
+      box-sizing: border-box;
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 85%;
+      overflow-y: auto;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--yellow); }
+    .modal-close { background: none; border: none; color: var(--muted); font-size: 1.35rem; cursor: pointer; transition: color 0.2s; outline: none; }
+    .modal-close:hover { color: #fff; }
+    
+    .location-card {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      padding: 0.85rem;
+      margin-bottom: 0.85rem;
+    }
+    .location-card h3 { font-size: 0.95rem; color: var(--yellow); margin-bottom: 0.3rem; }
+    .location-card p { font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .location-link { font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 600; display: inline-block; margin-top: 0.35rem; transition: color 0.2s; }
+    .location-link:hover { color: var(--yellow); text-decoration: underline; }
 
     /* Responsive styling for mobile devices */
     @media (max-width: 480px) {
@@ -67,7 +137,7 @@
   <div class="header">
     <div>
       <h1>🇨🇴 The Colombian Spot</h1>
-      <small style="color: var(--muted);">South Side & Oakland • Direct AI Assistant</small>
+      <span id="locationPill" title="View Locations & Hours" style="cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem; background: #374151; color: var(--yellow); padding: 0.15rem 0.6rem; border-radius: 999px; font-weight: 600; margin-top: 0.35rem; transition: background 0.2s;" onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#374151'">📍 South Side & Oakland</span>
     </div>
     <div style="display: flex; align-items: center; gap: 0.6rem;">
       <button id="resetChatBtn" title="Reset Chat" style="background: none; border: none; color: var(--muted); font-size: 1.25rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; outline: none;" onmouseover="this.style.color='var(--yellow)'" onmouseout="this.style.color='var(--muted)'">↻</button>
@@ -79,21 +149,74 @@
       ¡Hola! Welcome to The Colombian Spot. Ask me about our 100% gluten-free arepas, table reservations at South Side/Oakland, catering packages, or order direct for delivery!
     </div>
   </div>
-  <div class="chips-grid" id="chipsGrid">
+  
+  <!-- Sleek 1-Row Horizontal Scroll Chips -->
+  <div class="chips-scroll" id="chipsGrid">
     <div class="chip-item" onclick="sendPrompt('Are your arepas gluten free?')">🌾 Gluten-Free</div>
     <div class="chip-item" onclick="sendPrompt('I want to order arepas and empanadas')">🥟 Order Food</div>
     <div class="chip-item" onclick="sendPrompt('I want to book a table')">🍽️ Reserve Table</div>
     <div class="chip-item" onclick="sendPrompt('I want to inquire about catering')">🎉 Catering Bar</div>
+    <div class="chip-item" onclick="openLocations()">📍 Locations & Hours</div>
   </div>
+  
   <form class="input-bar" id="chatForm">
     <input type="text" id="userInput" placeholder="Ask a question or place an order..." autocomplete="off" />
     <button type="submit">Send</button>
   </form>
+
+  <!-- Elegant Locations Modal/Bottom-Sheet -->
+  <div class="modal-overlay" id="locationsModal">
+    <div class="bottom-sheet" id="bottomSheet">
+      <div class="modal-header">
+        <div class="modal-title">📍 Locations & Hours</div>
+        <button class="modal-close" id="closeModalBtn">✕</button>
+      </div>
+      
+      <div class="location-card">
+        <h3>🇨🇴 South Side</h3>
+        <p><strong>Address:</strong> 2019 E Carson St, Pittsburgh, PA 15203</p>
+        <p><strong>Dining:</strong> Casual Dine-In & Takeout (Reservations recommended)</p>
+        <p style="color: var(--muted); font-size: 0.8rem; margin-top: 0.2rem;">Hours: Tue-Thu 11:30AM-8:30PM | Fri-Sat 11:30AM-9:30PM | Sun 11:30AM-7:30PM (Mon Closed)</p>
+        <a href="https://maps.google.com/?q=2019+E+Carson+St,+Pittsburgh,+PA+15203" target="_blank" class="location-link">🗺️ Get Directions</a>
+      </div>
+
+      <div class="location-card">
+        <h3>🎓 Oakland</h3>
+        <p><strong>Address:</strong> 3533 Forbes Ave, Pittsburgh, PA 15213</p>
+        <p><strong>Dining:</strong> Quick Service Counter & Fast Casual</p>
+        <p style="color: var(--muted); font-size: 0.8rem; margin-top: 0.2rem;">Hours: Mon-Sun 7:00AM-10:00PM</p>
+        <a href="https://maps.google.com/?q=3533+Forbes+Ave,+Pittsburgh,+PA+15213" target="_blank" class="location-link">🗺️ Get Directions</a>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
   const msgBox = document.getElementById('messages');
   const chatForm = document.getElementById('chatForm');
   const userInput = document.getElementById('userInput');
+  
+  // Modal Elements
+  const locationsModal = document.getElementById('locationsModal');
+  const locationPill = document.getElementById('locationPill');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+
+  function openLocations() {
+    locationsModal.style.display = 'flex';
+  }
+
+  function closeLocations() {
+    locationsModal.style.display = 'none';
+  }
+
+  locationPill.addEventListener('click', openLocations);
+  closeModalBtn.addEventListener('click', closeLocations);
+
+  // Close modal when clicking outside the sheet content
+  locationsModal.addEventListener('click', (e) => {
+    if (e.target === locationsModal) {
+      closeLocations();
+    }
+  });
 
   function addMsg(content, sender = 'bot', html = null) {
     const div = document.createElement('div');
