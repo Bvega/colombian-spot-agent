@@ -1,0 +1,24 @@
+{
+  "name": "The Colombian Spot",
+  "short_name": "Colombian Spot",
+  "description": "Authentic 100% Gluten-Free Colombian Arepas & Direct AI Assistant",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#facc15",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>The Colombian Spot - Direct AI Assistant</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#facc15">
+  
+  <!-- Apple Mobile Web App Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Colombian Spot">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+
+  <style>
+    :root { --bg: #111827; --card: #1f2937; --yellow: #facc15; --blue: #2563eb; --text: #f9fafb; --muted: #9ca3af; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1rem; }
+    .chat-wrapper { width: 100%; max-width: 480px; height: 680px; background: var(--card); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #374151; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); }
+    .header { background: #111827; padding: 1.2rem; border-bottom: 2px solid var(--yellow); display: flex; align-items: center; justify-content: space-between; }
+    .header h1 { font-size: 1.15rem; color: var(--yellow); }
+    .status-badge { font-size: 0.75rem; background: #065f46; color: #34d399; padding: 0.25rem 0.6rem; border-radius: 999px; font-weight: 600; }
+    .messages { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.85rem; }
+    .msg { max-width: 85%; padding: 0.8rem 1rem; border-radius: 12px; font-size: 0.95rem; line-height: 1.4; }
+    .msg-bot { background: #374151; align-self: flex-start; border-bottom-left-radius: 2px; }
+    .msg-user { background: var(--blue); align-self: flex-end; border-bottom-right-radius: 2px; }
+    .order-box { background: #111827; border: 1px solid var(--yellow); border-radius: 8px; padding: 0.9rem; margin-top: 0.5rem; }
+    .item-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .btn-action { background: var(--yellow); color: #000; border: none; font-weight: 700; padding: 0.6rem; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 0.5rem; }
+    .btn-action:hover { background: #eab308; }
+    .chips { display: flex; gap: 0.4rem; padding: 0 0.8rem 0.6rem; overflow-x: auto; background: #111827; }
+    .chip { background: #374151; color: var(--muted); font-size: 0.8rem; padding: 0.35rem 0.7rem; border-radius: 15px; cursor: pointer; white-space: nowrap; border: 1px solid #4b5563; }
+    .chip:hover { color: var(--text); border-color: var(--yellow); }
+    .input-bar { display: flex; padding: 0.8rem; background: #111827; border-top: 1px solid #374151; gap: 0.5rem; }
+    .input-bar input { flex: 1; background: var(--card); border: 1px solid #4b5563; border-radius: 8px; padding: 0.75rem; color: #fff; outline: none; }
+    .input-bar button { background: var(--yellow); border: none; font-weight: 700; padding: 0 1.2rem; border-radius: 8px; cursor: pointer; color: #000; }
+
+    /* Responsive styling for mobile devices */
+    @media (max-width: 480px) {
+      body {
+        padding: 0;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+      }
+      .chat-wrapper {
+        height: 100vh;
+        height: -webkit-fill-available;
+        max-width: none;
+        border-radius: 0;
+        border: none;
+      }
+      .header {
+        padding-top: calc(1.2rem + env(safe-area-inset-top));
+      }
+      .input-bar {
+        padding-bottom: calc(0.8rem + env(safe-area-inset-bottom));
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="chat-wrapper">
+  <div class="header">
+    <div>
+      <h1>🇨🇴 The Colombian Spot</h1>
+      <small style="color: var(--muted);">South Side • Direct AI Ordering</small>
+    </div>
+    <div class="status-badge">● Zero Commission</div>
+  </div>
+  <div class="messages" id="messages">
+    <div class="msg msg-bot">
+      ¡Hola! Welcome to The Colombian Spot. Ask me about our 100% gluten-free arepas, empanadas, opening hours, or order direct for delivery!
+    </div>
+  </div>
+  <div class="chips">
+    <div class="chip" onclick="sendPrompt('Are your arepas gluten free?')">🌾 Gluten-Free Info</div>
+    <div class="chip" onclick="sendPrompt('I want to order an Arepa Paisa and Empanadas')">🥟 Order Delivery</div>
+    <div class="chip" onclick="sendPrompt('What are your hours and address?')">📍 Location & Hours</div>
+  </div>
+  <form class="input-bar" id="chatForm">
+    <input type="text" id="userInput" placeholder="Ask a question or place an order..." autocomplete="off" />
+    <button type="submit">Send</button>
+  </form>
+</div>
+<script>
+  const msgBox = document.getElementById('messages');
+  const chatForm = document.getElementById('chatForm');
+  const userInput = document.getElementById('userInput');
+
+  function addMsg(content, sender = 'bot', html = null) {
+    const div = document.createElement('div');
+    div.className = `msg msg-${sender}`;
+    if (html) div.innerHTML = html;
+    else div.textContent = content;
+    msgBox.appendChild(div);
+    msgBox.scrollTop = msgBox.scrollHeight;
+  }
+
+  async function sendPrompt(text) {
+    addMsg(text, 'user');
+    userInput.value = '';
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await res.json();
+      if (data.actionSuggested && data.actionSuggested.action === 'PROMPT_ORDER') {
+        const itemsHtml = data.actionSuggested.items.map(i => `<div class="item-row"><span>${i.name}</span><strong>${i.price}</strong></div>`).join('');
+        addMsg(null, 'bot', `${data.response}<div class="order-box">${itemsHtml}<button class="btn-action" onclick="executeDirectOrder()">Confirm & Dispatch Order</button></div>`);
+      } else {
+        addMsg(data.response, 'bot');
+      }
+    } catch (e) {
+      // Check if user is offline, and attempt to show cached menu
+      if (!navigator.onLine) {
+        try {
+          const menuRes = await fetch('/api/menu');
+          const menuData = await menuRes.json();
+          const itemsHtml = menuData.map(i => `
+            <div style="margin-bottom:0.75rem; border-bottom:1px dashed #374151; padding-bottom:0.5rem;">
+              <div class="item-row"><strong>${i.name}</strong> <span>$${i.price.toFixed(2)}</span></div>
+              <div style="font-size:0.8rem; color:var(--muted); margin-top:0.15rem;">${i.desc}</div>
+            </div>
+          `).join('');
+          addMsg(null, 'bot', `📡 <strong>You are offline.</strong> Here is our offline menu catalog:<div class="order-box">${itemsHtml}</div><span style="font-size:0.75rem; color:var(--muted)">Order submission requires an internet connection.</span>`);
+          return;
+        } catch (cacheErr) {
+          console.error('Failed to load menu from cache:', cacheErr);
+        }
+      }
+      addMsg('Connection error. Please try again.', 'bot');
+    }
+  }
+
+  async function executeDirectOrder() {
+    const address = prompt("Enter delivery address in Pittsburgh:", "2100 Wharton St, Pittsburgh, PA 15203");
+    if (!address) return;
+    try {
+      const res = await fetch('/api/orders/delivery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: { name: "Valued Customer" },
+          address: address,
+          items: [{ id: "arepa_paisa", quantity: 1 }, { id: "empanadas_beef", quantity: 1 }]
+        })
+      });
+      const data = await res.json();
+      addMsg(null, 'bot', `🎉 <strong>Order Placed Directly!</strong><br><strong>Ticket #:</strong> ${data.orderId}<br><strong>Delivery:</strong> ${address}<br><strong>ETA:</strong> ${data.estimatedDeliveryTime}<br><strong>Total:</strong> $${data.receipt.totalCharged.toFixed(2)}<br><span style="color:#34d399; font-size:0.85rem;">✨ <strong>Commission Saved:</strong> 100% retained by restaurant.</span>`);
+    } catch (e) {
+      addMsg('Failed to place order. Please check connection.', 'bot');
+    }
+  }
+
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (userInput.value.trim()) sendPrompt(userInput.value.trim());
+  });
+
+  // PWA Service Worker Registration
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered successfully with scope:', reg.scope))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    });
+  }
+</script>
+</body>
+</html>
